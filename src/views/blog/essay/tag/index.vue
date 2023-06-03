@@ -12,7 +12,7 @@
           <i slot="prefix" class="el-input__icon el-icon-search"></i>
         </el-input>
 
-        <el-button type="success">搜索</el-button>
+        <el-button type="success" @click="select">搜索</el-button>
       </div>
       <el-divider></el-divider>
       <el-checkbox-group v-model="checkedTag" @change="handleCheckedCitiesChange">
@@ -23,8 +23,8 @@
           style="width: auto;margin: 5px;display: inline-block"
         >
           <el-checkbox :key="tag.id" :label="tag.id">
-            <a>{{ tag.name }}</a><br/>
-            <span>（文章：{{ tag.articleNumber }}）</span>
+            <a>{{ tag.tagName }}</a><br />
+            <span>（文章：{{ tag.articleNum }}）</span>
           </el-checkbox>
         </el-card>
 
@@ -37,39 +37,31 @@
       >全选
 
       </el-checkbox>
-      <el-button type="danger" style="margin-left: 15px" @click="remove">删除</el-button>
+      <el-button type="danger" style="margin-left: 15px" @click="remove(checkedTag)">删除</el-button>
     </el-card>
 
   </div>
 </template>
 
 <script>
+import tag from '@/api/blog/tag'
 export default {
   name: 'Tag',
   data() {
     return {
-      tags: [
-        {
-          id: 1,
-          name: '标签',
-          articleNumber: 1
-        }, {
-          id: 2,
-          name: '标签2',
-          articleNumber: 1
-        }, {
-          id: 3,
-          name: '标签3',
-          articleNumber: 1
-        }
-      ],
+      tags: [],
+      // 被选中的标签
       checkedTag: [],
+      // 搜索标签
       search: '',
       // 是否全选
       checkAll: false,
       // 设置 indeterminate 状态，只负责样式控制
       isIndeterminate: false
     }
+  },
+  created() {
+    this.selectAll()
   },
   methods: {
     handleCheckAllChange(val) {
@@ -84,11 +76,28 @@ export default {
       this.checkAll = checkedCount === this.tags.length
       this.isIndeterminate = checkedCount > 0 && checkedCount < this.tags.length
     },
-    remove() {
-      console.log(this.checkedTag)
+    remove(data) {
+      tag.remove(data).then((response) => {
+        this.$message({
+          message: response,
+          type: 'success'
+        })
+      }, (err) => {
+        this.$message.error(err)
+      })
+      this.selectAll()
+    },
+    selectAll(data) {
+      tag.selectAll(data).then((response) => {
+        this.tags = response.records
+      }, (err) => {
+        this.$message.error(err)
+      })
+    },
+    select() {
+      this.selectAll({ tagName: this.search })
     }
   }
-
 }
 </script>
 

@@ -2,12 +2,12 @@
   <div class="app-container">
     <h1>文章</h1>
     <el-card class="box-card">
-      <el-select v-model="sort" style="display: inline-block;width: 150px" placeholder="请选择">
+      <el-select v-model="view" clearable style="display: inline-block;width: 150px" placeholder="按分类查看">
         <el-option
-          v-for="item in categories"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
+          v-for="item in categoriesList"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"
         >
         </el-option>
       </el-select>
@@ -46,18 +46,18 @@
           label="评论"
         >
           <template v-slot="scope">
-            <el-button type="primary">{{ scope.row.comment }}</el-button>
+            <el-button type="primary">{{ scope.row.commentNumber }}</el-button>
           </template>
         </el-table-column>
         <el-table-column
           label="浏览"
         >
           <template v-slot="scope">
-            <el-button type="info">{{ scope.row.browse }}</el-button>
+            <el-button type="info">{{ scope.row.views }}</el-button>
           </template>
         </el-table-column>
         <el-table-column
-          prop="author"
+          prop="createBy"
           label="作者"
         >
         </el-table-column>
@@ -65,11 +65,16 @@
           prop="categories"
           label="分类"
         >
+          <template v-slot="scope">
+            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{
+                value
+              }}
+            </el-tag>
+          </template>
         </el-table-column>
         <el-table-column
-          prop="time"
+          prop="createTime"
           label="时间"
-          width="120"
         >
         </el-table-column>
         <el-table-column
@@ -77,117 +82,78 @@
           label="操作"
         >
           <template v-slot="scope">
-            <el-button type="danger" @click="remove(scope.row.id)">删除</el-button>
+            <el-button type="success" @click="update(scope.row.id)">修改</el-button>
+            <el-button type="danger" @click="remove([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <div style="display: inline-block">
-        <el-select v-model="top" style="width: 150px" placeholder="请选择">
+        <el-select v-model="changeCategories" clearable style="width: 150px" placeholder="移动到分类">
           <el-option
-            v-for="item in topList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          >
-          </el-option>
-        </el-select>
-        <el-select v-model="sort" style="width: 150px" placeholder="请选择">
-          <el-option
-            v-for="item in categories"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+            v-for="item in categoriesList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
           >
           </el-option>
         </el-select>
       </div>
       <div style="margin-bottom: 30px;display: inline-block">
-        <el-button type="primary" @click="release">发布</el-button>
-        <el-button type="danger" @click="remove(undefined)">删除</el-button>
+        <el-button type="primary" @click="updateArticleTopOrHide(true,true)">置顶</el-button>
+        <el-button type="info" @click="updateArticleTopOrHide(false,true)">取消置顶</el-button>
+        <el-button type="warning" @click="updateArticleTopOrHide(false,false)">放入草稿箱</el-button>
+        <el-button type="danger" @click="remove(multipleSelection)">删除</el-button>
       </div>
 
-      <span style="text-align: center;display:block;">(有 {{ tableData.length }} 篇文章)</span>
+      <span style="text-align: center;display:block;">(有 {{ total }} 篇文章)</span>
 
     </el-card>
   </div>
 </template>
 
 <script>
-import {insert } form '@api/bloh/article'
+import article from '@/api/blog/article'
+import categories from '@/api/blog/categories'
+
 export default {
   name: 'Article',
   data() {
     return {
       // 分类列表
-      categories: [
-        {
-          value: '1',
-          label: '按分类查看'
-        },
-        {
-          value: '2',
-          label: '未分类'
-        }
-      ],
+      categoriesList: [],
       // 搜索
       search: '',
-      // 排序
-      sort: '',
-      // 置顶
-      top: '',
+      // 修改 文章 分类
+      changeCategories: '',
+      // 查看
+      view: '',
       // 表格数据
-      tableData: [
-        {
-          id: '1',
-          title: '标题1',
-          comment: '12',
-          browse: '1',
-          author: '作者1',
-          categories: '分类1',
-          time: '2016-05-03'
-        },
-        {
-          id: '2',
-          title: '标题1',
-          comment: '1',
-          browse: '1',
-          author: '作者1',
-          categories: '分类1',
-          time: '2016-05-03'
-        },
-        {
-          id: '3',
-          title: '标题1',
-          comment: '1',
-          browse: '1',
-          author: '作者1',
-          categories: '分类1',
-          time: '2016-05-03'
-        }
-      ],
+      tableData: [],
       // 多个选择
       multipleSelection: [],
-      // 置顶列表
-      topList: [
-        {
-          label: '置顶',
-          value: '1'
-        },
-        {
-          label: '首页置顶',
-          value: '2'
-        },
-        {
-          label: '分类置顶',
-          value: '3'
-        },
-        {
-          label: '取消置顶',
-          value: '4'
-        }
-      ]
+      // 是否显示修改
+      isUpdate: false,
+      total: 0
     }
+  },
+  watch: {
+    view: {
+      handler(a, b) {
+        this.submitCategories()
+      }
+    },
+    changeCategories: {
+      handler(a, b) {
+        if (this.changeCategories.length > 0) {
+          this.updateCategories()
+        }
+      }
+    }
+  },
+  created() {
+    this.selectArticle({ 'hide': true })
+    this.selectCategories()
   },
   methods: {
     toggleSelection(rows) {
@@ -204,23 +170,94 @@ export default {
         return item.id
       })
     },
+    // 修改 文章 分类
+    updateCategories() {
+      if (this.multipleSelection.length > 0) {
+        const data = '{"' + this.changeCategories + '":' + JSON.stringify(this.multipleSelection) + '}'
+        categories.updateCategories(JSON.parse(data)).then((response) => {
+          this.$message({
+            message: response,
+            type: 'success'
+          })
+        }, (err) => {
+          this.$message.error(err)
+        })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
+        this.selectCategories()
+      } else {
+        this.changeCategories = ''
+        this.$message.error('请选择要操作的文章!')
+      }
+    },
     // 提交搜索
     submitSearch() {
-      console.log(this.search)
+      if (this.search.length > 0) {
+        this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
+      } else {
+        this.$message.error('请输入要搜索的字段')
+      }
     },
-    // 发布
-    release() {
-      insert()
-      console.log('发布')
+    // 按分类查找文章
+    submitCategories() {
+      this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
+    },
+    // 发布 和 置顶
+    async updateArticleTopOrHide(Boolean, isTop) {
+      if (this.multipleSelection.length > 0) {
+        const data = '{"' + Boolean + '":' + JSON.stringify(this.multipleSelection) + '}'
+        await article.updateArticleTopOrHide(JSON.parse(data), isTop).then((response) => {
+          this.$message({
+            message: response,
+            type: 'success'
+          })
+        }, (err) => {
+          this.$message.error(err)
+        })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
+      } else {
+        this.changeCategories = ''
+        this.$message.error('请选择要操作的文章!')
+      }
     },
     // 删除
     remove(id) {
-      if (id !== undefined) {
-        console.log('删除id')
-      } else {
-        console.log('批量删除')
-        console.log(this.multipleSelection)
-      }
+      article.removeIdList(id).then((response) => {
+        this.$message({
+          message: response,
+          type: 'success'
+        })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
+      }, (err) => {
+        this.$message.error(err)
+      })
+    },
+    // 获取 文章
+    selectArticle(data) {
+      article.selectAll(data).then((response) => {
+        this.tableData = response.records
+        this.total = response.total
+      }, (err) => {
+        this.$message.error(err)
+      })
+    },
+    // 获取全部分类
+    selectCategories() {
+      categories.selectAll().then((response) => {
+        this.categoriesList = response.records
+      }, (err) => {
+        console.log(err)
+        this.$message.error('获取分类列表失败')
+      })
+    },
+    update(data) {
+      this.$router.push({
+        path: '/blog/essay/edit', query: {
+          Id: data
+        }
+      })
     }
   }
 }
@@ -234,5 +271,9 @@ export default {
 
 .el-icon-arrow-down {
   font-size: 12px;
+}
+
+.categories {
+  margin: 0 2px;
 }
 </style>
