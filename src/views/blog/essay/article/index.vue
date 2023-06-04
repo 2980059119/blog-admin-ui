@@ -101,8 +101,8 @@
       </div>
       <div style="margin-bottom: 30px;display: inline-block">
         <el-button type="primary" @click="updateArticleTopOrHide(true,true)">置顶</el-button>
-        <el-button type="info" @click="updateArticleTopOrHide(false,true)">取消置顶</el-button>
-        <el-button type="warning" @click="updateArticleTopOrHide(false,false)">放入草稿箱</el-button>
+        <el-button type="info" @click="updateArticleTopOrHide(true,true)">取消置顶</el-button>
+        <el-button type="warning" @click="updateArticleTopOrHide(true,false)">放入草稿箱</el-button>
         <el-button type="danger" @click="remove(multipleSelection)">删除</el-button>
       </div>
 
@@ -152,7 +152,7 @@ export default {
     }
   },
   created() {
-    this.selectArticle({ 'hide': true })
+    this.selectArticle({ 'hide': false })
     this.selectCategories()
   },
   methods: {
@@ -183,7 +183,7 @@ export default {
           this.$message.error(err)
         })
         Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
-        this.selectArticle({ 'hide': true })
+        this.selectArticle({ 'hide': false })
         this.selectCategories()
       } else {
         this.changeCategories = ''
@@ -193,14 +193,14 @@ export default {
     // 提交搜索
     submitSearch() {
       if (this.search.length > 0) {
-        this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
+        this.selectArticle({ title: this.search, 'hide': false, categoriesList: this.view })
       } else {
         this.$message.error('请输入要搜索的字段')
       }
     },
     // 按分类查找文章
     submitCategories() {
-      this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
+      this.selectArticle({ title: this.search, 'hide': false, categoriesList: this.view })
     },
     // 发布 和 置顶
     async updateArticleTopOrHide(Boolean, isTop) {
@@ -215,7 +215,7 @@ export default {
           this.$message.error(err)
         })
         Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
-        this.selectArticle({ 'hide': true })
+        this.selectArticle({ 'hide': false })
       } else {
         this.changeCategories = ''
         this.$message.error('请选择要操作的文章!')
@@ -229,7 +229,7 @@ export default {
           type: 'success'
         })
         Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
-        this.selectArticle({ 'hide': true })
+        this.selectArticle({ 'hide': false })
       }, (err) => {
         this.$message.error(err)
       })

@@ -66,7 +66,10 @@
           label="分类"
         >
           <template v-slot="scope">
-            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{ value }}</el-tag>
+            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{
+                value
+              }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -79,6 +82,7 @@
           label="操作"
         >
           <template v-slot="scope">
+            <el-button type="success" @click="update(scope.row.id)">修改</el-button>
             <el-button type="danger" @click="remove([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
@@ -97,12 +101,12 @@
       </div>
       <div style="margin-bottom: 30px;display: inline-block">
         <el-button type="primary" @click="updateArticleTopOrHide(true,true)">置顶</el-button>
-        <el-button type="primary" @click="updateArticleTopOrHide(false,true)">取消置顶</el-button>
-        <el-button type="primary" @click="updateArticleTopOrHide(true,false)">发布</el-button>
+        <el-button type="info" @click="updateArticleTopOrHide(false,true)">取消置顶</el-button>
+        <el-button type="success" @click="updateArticleTopOrHide(false,false)">发布</el-button>
         <el-button type="danger" @click="remove(multipleSelection)">删除</el-button>
       </div>
 
-      <span style="text-align: center;display:block;">(有 {{ tableData.length }} 篇文章)</span>
+      <span style="text-align: center;display:block;">(有 {{ total }} 篇文章)</span>
 
     </el-card>
   </div>
@@ -111,8 +115,9 @@
 <script>
 import article from '@/api/blog/article'
 import categories from '@/api/blog/categories'
+
 export default {
-  name: 'Draft',
+  name: 'Article',
   data() {
     return {
       // 分类列表
@@ -126,7 +131,10 @@ export default {
       // 表格数据
       tableData: [],
       // 多个选择
-      multipleSelection: []
+      multipleSelection: [],
+      // 是否显示修改
+      isUpdate: false,
+      total: 0
     }
   },
   watch: {
@@ -144,7 +152,7 @@ export default {
     }
   },
   created() {
-    this.selectArilcle({ 'hide': false })
+    this.selectArticle({ 'hide': true })
     this.selectCategories()
   },
   methods: {
@@ -174,6 +182,9 @@ export default {
         }, (err) => {
           this.$message.error(err)
         })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
+        this.selectCategories()
       } else {
         this.changeCategories = ''
         this.$message.error('请选择要操作的文章!')
@@ -181,11 +192,15 @@ export default {
     },
     // 提交搜索
     submitSearch() {
-      this.selectArilcle({ title: this.search })
+      if (this.search.length > 0) {
+        this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
+      } else {
+        this.$message.error('请输入要搜索的字段')
+      }
     },
     // 按分类查找文章
     submitCategories() {
-      this.selectArilcle({ categoriesList: this.view })
+      this.selectArticle({ title: this.search, 'hide': true, categoriesList: this.view })
     },
     // 发布 和 置顶
     async updateArticleTopOrHide(Boolean, isTop) {
@@ -199,13 +214,13 @@ export default {
         }, (err) => {
           this.$message.error(err)
         })
-        this.selectArilcle({ 'hide': false })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
       } else {
         this.changeCategories = ''
         this.$message.error('请选择要操作的文章!')
       }
     },
-    // 删除
     // 删除
     remove(id) {
       article.removeIdList(id).then((response) => {
@@ -213,15 +228,17 @@ export default {
           message: response,
           type: 'success'
         })
-        this.selectArilcle({ 'hide': false })
+        Object.keys(this.$data).forEach(key => (this.$data[key] = ''))
+        this.selectArticle({ 'hide': true })
       }, (err) => {
         this.$message.error(err)
       })
     },
     // 获取 文章
-    selectArilcle(data) {
+    selectArticle(data) {
       article.selectAll(data).then((response) => {
         this.tableData = response.records
+        this.total = response.total
       }, (err) => {
         this.$message.error(err)
       })
@@ -233,6 +250,13 @@ export default {
       }, (err) => {
         console.log(err)
         this.$message.error('获取分类列表失败')
+      })
+    },
+    update(data) {
+      this.$router.push({
+        path: '/blog/essay/edit', query: {
+          Id: data
+        }
       })
     }
   }
@@ -248,7 +272,8 @@ export default {
 .el-icon-arrow-down {
   font-size: 12px;
 }
-.categories{
+
+.categories {
   margin: 0 2px;
 }
 </style>

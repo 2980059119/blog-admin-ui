@@ -44,11 +44,10 @@
           <span class="demonstration">发布时间：（当设置未来的时间点时，文章将在该时间点后定时发布）</span>
           <el-date-picker
             v-model="form.date"
-            type="date"
-            placeholder="选择日期"
+            type="datetime"
+            placeholder="选择日期时间"
             :picker-options="pickerOptions"
             value-format="yyyy-MM-dd HH:mm:ss"
-            format="yyyy 年 MM 月 dd 日"
           >
           </el-date-picker>
         </div>
@@ -241,6 +240,7 @@ export default {
       this.submit(this.form)
       this.save = false
     },
+    // 修改或者提交按钮
     submit(form) {
       if (!(form.tagList instanceof Array)) {
         form.tagList = []
@@ -251,6 +251,7 @@ export default {
       if (!form.date || form.date.trim().length === 0) {
         form.date = null
       }
+      form.alias = null
       article.insertOrUpdate(form).then((response) => {
         this.$message({
           message: response,
@@ -354,5 +355,10 @@ export default {
   width: 90px;
   margin-left: 10px;
   vertical-align: bottom;
+}
+</style>
+<style>
+.el-picker-panel__footer .el-picker-panel__link-btn.el-button--text {
+  display: none;
 }
 </style>
