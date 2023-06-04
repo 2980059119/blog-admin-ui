@@ -2,46 +2,48 @@
   <div class="app-container">
     <h1>文章</h1>
     <el-card class="box-card">
+      <!-- 按分类查看 -->
       <el-select v-model="view" clearable style="display: inline-block;width: 150px" placeholder="按分类查看">
         <el-option
           v-for="item in categoriesList"
           :key="item.id"
           :label="item.name"
           :value="item.id"
-        >
-        </el-option>
+        />
       </el-select>
+      <!-- 搜索框 -->
       <div style="display: inline-block;">
         <el-input
           v-model.lazy="search"
           style="display: inline-block;width: 150px"
           placeholder="请输入内容"
         >
-          <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          <i slot="prefix" class="el-input__icon el-icon-search" />
         </el-input>
 
         <el-button type="success" @click="submitSearch">搜索</el-button>
       </div>
-
+      <!-- 文章列表 -->
       <el-table
         ref="multipleTable"
         :data="tableData"
         tooltip-effect="dark"
-        border
-        stripe
+        :stripe="true"
+        :border="true"
         style="width: 100%;margin:25px 0"
         @selection-change="handleSelectionChange"
       >
+        <!-- 标题 -->
         <el-table-column
           type="selection"
           width="40"
-        >
-        </el-table-column>
+        />
+        <!-- 标题 -->
         <el-table-column
           prop="title"
           label="标题"
-        >
-        </el-table-column>
+        />
+        <!-- 评论 -->
         <el-table-column
           label="评论"
         >
@@ -49,6 +51,7 @@
             <el-button type="primary">{{ scope.row.commentNumber }}</el-button>
           </template>
         </el-table-column>
+        <!-- 浏览 -->
         <el-table-column
           label="浏览"
         >
@@ -56,27 +59,27 @@
             <el-button type="info">{{ scope.row.views }}</el-button>
           </template>
         </el-table-column>
+        <!-- 作者 -->
         <el-table-column
           prop="createBy"
           label="作者"
-        >
-        </el-table-column>
+        />
+        <!-- 分类 -->
         <el-table-column
           prop="categories"
           label="分类"
         >
           <template v-slot="scope">
-            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{
-                value
-              }}
+            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{ value }}
             </el-tag>
           </template>
         </el-table-column>
+        <!-- 时间 -->
         <el-table-column
           prop="createTime"
           label="时间"
-        >
-        </el-table-column>
+        />
+        <!-- 操作 -->
         <el-table-column
           prop="id"
           label="操作"
@@ -88,6 +91,7 @@
         </el-table-column>
       </el-table>
 
+      <!-- 移动分类 -->
       <div style="display: inline-block">
         <el-select v-model="changeCategories" clearable style="width: 150px" placeholder="移动到分类">
           <el-option
@@ -95,10 +99,10 @@
             :key="item.id"
             :label="item.name"
             :value="item.id"
-          >
-          </el-option>
+          />
         </el-select>
       </div>
+      <!-- 操作 -->
       <div style="margin-bottom: 30px;display: inline-block">
         <el-button type="primary" @click="updateArticleTopOrHide(true,true)">置顶</el-button>
         <el-button type="info" @click="updateArticleTopOrHide(true,true)">取消置顶</el-button>
@@ -134,6 +138,7 @@ export default {
       multipleSelection: [],
       // 是否显示修改
       isUpdate: false,
+      // 总共多少条数据
       total: 0
     }
   },
@@ -143,6 +148,7 @@ export default {
         this.submitCategories()
       }
     },
+    // 文章分类
     changeCategories: {
       handler(a, b) {
         if (this.changeCategories.length > 0) {
@@ -152,19 +158,13 @@ export default {
     }
   },
   created() {
+    // 获取不是草稿的文章
     this.selectArticle({ 'hide': false })
+    // 获取分类列表
     this.selectCategories()
   },
   methods: {
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row)
-        })
-      } else {
-        this.$refs.multipleTable.clearSelection()
-      }
-    },
+    // 表格选中
     handleSelectionChange(val) {
       this.multipleSelection = val.map(function(item) {
         return item.id
@@ -203,10 +203,10 @@ export default {
       this.selectArticle({ title: this.search, 'hide': false, categoriesList: this.view })
     },
     // 发布 和 置顶
-    async updateArticleTopOrHide(Boolean, isTop) {
+    updateArticleTopOrHide(Boolean, isTop) {
       if (this.multipleSelection.length > 0) {
         const data = '{"' + Boolean + '":' + JSON.stringify(this.multipleSelection) + '}'
-        await article.updateArticleTopOrHide(JSON.parse(data), isTop).then((response) => {
+        article.updateArticleTopOrHide(JSON.parse(data), isTop).then((response) => {
           this.$message({
             message: response,
             type: 'success'
@@ -252,10 +252,11 @@ export default {
         this.$message.error('获取分类列表失败')
       })
     },
+    // 更新文章
     update(data) {
       this.$router.push({
         path: '/blog/essay/edit', query: {
-          Id: data
+          id: data
         }
       })
     }

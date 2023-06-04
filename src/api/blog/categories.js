@@ -16,7 +16,6 @@ export function selectAll(data) {
   })
 }
 export function updateCategories(data) {
-  console.log(data)
   return request({
     url: 'api/categories/updateCategories',
     method: 'put',
@@ -24,4 +23,12 @@ export function updateCategories(data) {
   })
 }
 
-export default { updateCategories, insert, selectAll }
+export function remove(idList) {
+  return request({
+    url: 'api/categories',
+    method: 'delete',
+    data: idList
+  })
+}
+
+export default { remove, updateCategories, insert, selectAll }

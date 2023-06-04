@@ -8,8 +8,7 @@
           :key="item.id"
           :label="item.name"
           :value="item.id"
-        >
-        </el-option>
+        />
       </el-select>
       <div style="display: inline-block;">
         <el-input
@@ -17,7 +16,7 @@
           style="display: inline-block;width: 150px"
           placeholder="请输入内容"
         >
-          <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          <i slot="prefix" class="el-input__icon el-icon-search"/>
         </el-input>
 
         <el-button type="success" @click="submitSearch">搜索</el-button>
@@ -27,21 +26,19 @@
         ref="multipleTable"
         :data="tableData"
         tooltip-effect="dark"
-        border
-        stripe
+        :border="true"
+        :stripe="true"
         style="width: 100%;margin:25px 0"
         @selection-change="handleSelectionChange"
       >
         <el-table-column
           type="selection"
           width="40"
-        >
-        </el-table-column>
+        />
         <el-table-column
           prop="title"
           label="标题"
-        >
-        </el-table-column>
+        />
         <el-table-column
           label="评论"
         >
@@ -59,24 +56,21 @@
         <el-table-column
           prop="createBy"
           label="作者"
-        >
-        </el-table-column>
+        />
         <el-table-column
           prop="categories"
           label="分类"
         >
           <template v-slot="scope">
-            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">{{
-                value
-              }}
+            <el-tag v-for="(value,key) in scope.row.categoriesList" :key="key" size="mini" class="categories">
+              {{ value }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column
           prop="createTime"
           label="时间"
-        >
-        </el-table-column>
+        />
         <el-table-column
           prop="id"
           label="操作"
@@ -95,8 +89,7 @@
             :key="item.id"
             :label="item.name"
             :value="item.id"
-          >
-          </el-option>
+          />
         </el-select>
       </div>
       <div style="margin-bottom: 30px;display: inline-block">

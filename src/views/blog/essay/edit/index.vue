@@ -1,8 +1,10 @@
 <template>
   <div class="app-container">
     <el-form ref="form">
+      <!-- 文章信息 -->
       <el-card class="box-card">
         <span class="title">分类：</span>
+        <!-- 分类列表 -->
         <el-form-item style="margin-bottom: 0;">
           <el-select
             v-model="form.categoriesList"
@@ -18,88 +20,96 @@
             />
           </el-select>
         </el-form-item>
-        <span class="title">标签：(也用于文章页关键词， 多个用英文逗号分隔)</span><br/>
-        <el-tag
-          :key="tag"
-          v-for="tag in form.tagList"
-          closable
-          :disable-transitions="false"
-          @close="handleClose(tag)"
-        >
-          {{ tag }}
-        </el-tag>
-        <el-input
-          class="input-new-tag"
-          v-if="inputVisible"
-          v-model="inputValue"
-          ref="saveTagInput"
-          size="small"
-          @keyup.enter.native="handleInputConfirm"
-          @blur="handleInputConfirm"
-        >
-        </el-input>
-        <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
-
+        <span class="title">标签：(也用于文章页关键词， 多个用英文逗号分隔)</span> <br>
+        <!-- 标签列表 添加标签 -->
+        <div>
+          <el-tag
+            v-for="tag in form.tagList"
+            :key="tag"
+            closable
+            :disable-transitions="false"
+            @close="handleClose(tag)"
+          >
+            {{ tag }}
+          </el-tag>
+          <el-input
+            v-if="inputVisible"
+            ref="saveTagInput"
+            v-model="inputValue"
+            class="input-new-tag"
+            size="small"
+            @keyup.enter.native="handleInputConfirm"
+            @blur="handleInputConfirm"
+          />
+          <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
+        </div>
+        <!-- 选择发布时间 -->
         <div class="block">
-          <span class="demonstration">发布时间：（当设置未来的时间点时，文章将在该时间点后定时发布）</span>
           <el-date-picker
             v-model="form.date"
             type="datetime"
             placeholder="选择日期时间"
             :picker-options="pickerOptions"
             value-format="yyyy-MM-dd HH:mm:ss"
-          >
-          </el-date-picker>
+          />
+          <span>发布时间：（当设置未来的时间点时，文章将在该时间点后定时发布）</span>
         </div>
+        <!-- 是否允许评论 -->
         <el-switch
           v-model="form.allowRemark"
           active-text="允许评论"
-        >
-        </el-switch>
+        />
+        <!-- 是否置顶 -->
         <el-switch
           v-model="form.top"
           active-text="是否置顶"
-        >
-        </el-switch>
+        />
 
       </el-card>
-      <h3>文章摘要:</h3>
-      <div class="app-editor" style="padding-top: 0;">
-        <mavon-editor
-          v-model="form.excerpt"
-          :subfield="false"
-          default-open="edit"
-          placeholder="如果留空，则使用文章内容作为摘要..."
-          @imgAdd="imgAdd"
+      <!-- 文章内容 -->
+      <div>
+        <h3>文章摘要:</h3>
+        <div class="app-editor" style="padding-top: 0;">
+          <mavon-editor
+            v-model="form.excerpt"
+            :subfield="false"
+            default-open="edit"
+            placeholder="如果留空，则使用文章内容作为摘要..."
+            @imgAdd="imgAdd"
+          />
+        </div>
+        <h1>写文章</h1>
+        <!-- 文章标题 -->
+        <el-input
+          v-model="form.title"
+          placeholder="文章标题"
+          clearable
         />
-      </div>
-      <h1>写文章</h1>
-      <el-input
-        v-model="form.title"
-        placeholder="文章标题"
-        clearable
-      >
-      </el-input>
-      <div class="app-editor">
-        <mavon-editor v-model="form.content" :style="'height:' + height" @imgAdd="imgAdd"/>
-      </div>
-      <div class="button">
-        <el-button
-          type="primary"
-          round
-          :loading="publish"
-          :disabled="save"
-          @click="publishArticle"
-        >发布文章
-        </el-button>
-        <el-button
-          type="success"
-          round
-          :loading="save"
-          :disabled="publish"
-          @click="saveDraft"
-        >保存草稿
-        </el-button>
+        <!-- 文章内容 -->
+        <div class="app-editor">
+          <mavon-editor ref="md" v-model="form.content" :style="'height:' + height" @imgAdd="imgAdd" />
+        </div>
+        <!-- 发布 和 草稿 -->
+        <div class="button">
+          <!-- 发布文章 -->
+          <el-button
+            type="primary"
+            round
+            :loading="publish"
+            :disabled="save"
+            @click="publishArticle"
+          >发布文章
+          </el-button>
+          <!-- 保存草稿 -->
+          <el-button
+            type="success"
+            round
+            :loading="save"
+            :disabled="publish"
+            @click="saveDraft"
+          >保存草稿
+          </el-button>
+        </div>
       </div>
     </el-form>
   </div>
@@ -109,6 +119,7 @@
 import { upload } from '@/utils/upload'
 import article from '@/api/blog/article'
 import categories from '@/api/blog/categories'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Edit',
@@ -178,11 +189,15 @@ export default {
       Id: ''
     }
   },
+  // 当路径出现id是即是编辑模式
   watch: {
-    Id: {
-      handler: function(newVal, oldVal) {
+    id: {
+      handler: function(newVal) {
+        // 拿到文章id
         if (newVal) {
+          // 校验文章id
           if (newVal.length > 0) {
+            // 获取文章信息
             article.selectOne(newVal).then((response) => {
               this.form = response
               this.form.categoriesList = Object.keys(response.categoriesList)
@@ -200,27 +215,40 @@ export default {
       }
     }
   },
+  // eslint-disable-next-line vue/order-in-components
+  computed: {
+    ...mapGetters([
+      // 图片上传地址
+      'imagesUploadApi'
+    ])
+  },
   mounted() {
     const that = this
+    // 设置 文章编辑高度
     window.onresize = function temp() {
       that.height = document.documentElement.clientHeight - 350 + 'px'
     }
   },
   created() {
+    // 获取分类
     this.selectCategories()
-    this.Id = this.$route.query.Id
+    // 判断当前是否是编辑模式
+    if (this.$route.query.id) {
+      this.id = this.$route.query.id
+    }
   },
   methods: {
     // 上传图片
     imgAdd(pos, $file) {
+      // 上传文件
       upload(this.imagesUploadApi, $file).then(res => {
         const data = res.data
-        const url = this.baseApi + '/file/' + data.type + '/' + data.realName
+        const url = 'http://192.168.146.110:9000/images/' + data
         this.$refs.md.$img2Url(pos, url)
       })
     },
     // 发布文章
-    async publishArticle() {
+    publishArticle() {
       // 获取文章字数
       this.form.wordCount = this.contentWordCount(this.form.content)
       // 将按钮设置成不可点击
@@ -263,6 +291,7 @@ export default {
         this.$message.error(err)
       })
     },
+    // 获取文章字数
     contentWordCount(content) {
       console.log(content)
       // 定义要去除的特殊字符
@@ -279,22 +308,26 @@ export default {
       stringLength = stringLength.replace(specialChars, '').replace(lineBreaks, '').replace(spaces, '').replace(hljsLeft, '').replace(hljsCenter, '').replace(hljsRight, '')
       return stringLength.length
     },
+    // 查询所有分类
     selectCategories() {
       categories.selectAll().then((data) => {
         this.categoriesList = data.records
       }, (err) => {
-        console.log(err)
+        this.$message.error(err)
       })
     },
+    // 标签
     handleClose(tag) {
       this.form.tagList.splice(this.form.tagList.indexOf(tag), 1)
     },
+    // 标签
     showInput() {
       this.inputVisible = true
       this.$nextTick(_ => {
         this.$refs.saveTagInput.$refs.input.focus()
       })
     },
+    // 标签
     handleInputConfirm() {
       const inputValue = this.inputValue
       if (inputValue) {
@@ -316,11 +349,6 @@ export default {
   padding: 20px 0;
   position: sticky;
 }
-
-.v-note-wrapper.shadow {
-  /*z-index: -1;*/
-}
-
 .title {
   line-height: 3;
 }

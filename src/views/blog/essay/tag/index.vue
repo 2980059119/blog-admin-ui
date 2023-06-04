@@ -9,12 +9,12 @@
           style="display: inline-block;width: 150px"
           placeholder="请输入内容"
         >
-          <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          <i slot="prefix" class="el-input__icon el-icon-search"/>
         </el-input>
 
         <el-button type="success" @click="select">搜索</el-button>
       </div>
-      <el-divider></el-divider>
+      <el-divider />
       <el-checkbox-group v-model="checkedTag" @change="handleCheckedCitiesChange">
         <el-card
           v-for="(tag) in tags"
@@ -32,10 +32,10 @@
       <el-checkbox
         v-model="checkAll"
         :indeterminate="isIndeterminate"
-        @change="handleCheckAllChange"
         style="margin-top: 15px"
-      >全选
-
+        @change="handleCheckAllChange"
+      >
+        全选
       </el-checkbox>
       <el-button type="danger" style="margin-left: 15px" @click="remove(checkedTag)">删除</el-button>
     </el-card>

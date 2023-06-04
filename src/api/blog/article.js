@@ -65,4 +65,11 @@ export function selectOne(id) {
   })
 }
 
+export function upload(file) {
+  return request({
+    url: `api/article/${id}`,
+    method: 'get'
+  })
+}
+
 export default { selectOne, update, removeIdList, updateArticleTopOrHide, selectAll, insertOrUpdate }

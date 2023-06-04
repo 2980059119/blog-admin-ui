@@ -2,13 +2,12 @@
   <div class="app-container">
     <h1>文章分类</h1>
     <el-button type="success" icon="el-icon-edit" style="margin-bottom: 15px" @click="()=>{show = true}">添加分类</el-button>
+    <!-- 分类列表 -->
     <el-card class="box-card">
-
       <el-table
         :data="categoriesList"
         border
         style="width: 100%"
-        @selection-change="handleSelectionChange"
       >
         <el-table-column
           label="排序"
@@ -53,17 +52,16 @@
           label="操作"
         >
           <template v-slot="scope">
-            <el-button type="danger">删除</el-button>
+            <el-button type="danger" @click="remove([scope.row.id])">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-
       <div style="margin-bottom: 30px;display: inline-block">
         <el-button type="primary">改变排序</el-button>
       </div>
-
     </el-card>
     <div :class="show ? 'mask' : ''" />
+    <!-- 添加分类 -->
     <el-card v-show="show" v-loading="loading" class="box-card" style="width: 500px;position: fixed;top: 100px;left: 0;right: 0;margin:0 auto;z-index: 1001;">
       <div slot="header" class="clearfix">
         <h3>新建分类</h3>
@@ -76,7 +74,6 @@
           <el-input v-model="formCategories.alias" />
           <span>用于URL的友好显示，可不填</span>
         </el-form-item>
-
         <el-form-item label="父分类">
           <el-select
             v-model="formCategories.pid"
@@ -101,11 +98,10 @@
         </el-form-item>
         <el-divider />
         <div size="large" style="text-align: center;">
-          <el-button type="primary" @click="onSubmit">保存</el-button>
+          <el-button type="primary" @click="save">保存</el-button>
           <el-button @click="()=>{show = false, Object.keys(formCategories).forEach(key => (formCategories[key] = ''))}">取消</el-button>
         </div>
       </el-form>
-
     </el-card>
   </div>
 </template>
@@ -116,43 +112,8 @@ export default {
   name: 'Categories',
   data() {
     return {
-      input10: '',
-      height: document.documentElement.clientHeight - 350 + 'px',
       // 表格数据
-      tableData: [
-        {
-          id: '1',
-          sort: 1,
-          name: 'iKun',
-          description: '我是iKun',
-          alias: 'IKun',
-          articleNumber: 3
-        },
-        {
-          id: '2',
-          sort: 2,
-          name: 'iKun',
-          description: '我是iKun',
-          alias: 'IKun',
-          articleNumber: 3
-        },
-        {
-          id: '3',
-          sort: '3',
-          name: 'iKun',
-          description: '我是iKun',
-          alias: 'IKun',
-          articleNumber: 3
-        },
-        {
-          id: '4',
-          sort: 4,
-          name: 'iKun',
-          description: '我是iKun',
-          alias: 'IKun',
-          articleNumber: 3
-        }
-      ],
+      tableData: [],
       formCategories: {
         // 分类名字
         name: '',
@@ -166,35 +127,17 @@ export default {
       show: false,
       // 表格数据
       categoriesList: [],
+      // 加载
       loading: false
     }
   },
-  mounted() {
-    const that = this
-    window.onresize = function temp() {
-      that.height = document.documentElement.clientHeight - 350 + 'px'
-    }
-  },
   created() {
-    // eslint-disable-next-line no-undef
+    // 获取分类
     this.selectCategories()
   },
   methods: {
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row)
-        })
-      } else {
-        this.$refs.multipleTable.clearSelection()
-      }
-    },
-    handleSelectionChange(val) {
-      this.multipleSelection = val.map(function(item) {
-        return item.id
-      })
-    },
-    onSubmit() {
+    // 保存分类
+    save() {
       this.loading = true
       if (this.formCategories.pid.length === 0) {
         this.formCategories.pid = 0
@@ -204,23 +147,35 @@ export default {
           message: data,
           type: 'success'
         })
-        this.selectCategories()
       }, (err) => {
         this.$message.error(err)
       })
+      this.selectCategories()
       this.show = false
       Object.keys(this.formCategories).forEach(key => (this.formCategories[key] = ''))
       this.loading = false
     },
+    // 获取分类
     selectCategories() {
-      categories.selectAll().then((data) => {
-        this.categoriesList = data.records
+      categories.selectAll().then((result) => {
+        this.categoriesList = result.records
       }, (err) => {
-        console.log(err)
-        this.$message.error('获取分类列表失败')
+        this.$message.error(err)
       })
+    },
+    // 删除分类
+    remove(id) {
+      if (Array.isArray(id)) {
+        categories.remove(id).then((result) => {
+          this.$message({
+            message: result,
+            type: 'success'
+          })
+        }, (err) => {
+          this.$message.error(err)
+        })
+      }
     }
-
   }
 }
 </script>
