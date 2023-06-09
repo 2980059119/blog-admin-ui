@@ -1,12 +1,10 @@
 {
-  "name": "eladmin-plus-ui",
-  "version": "2.0.0",
-  "description": "eladmin-plus 前端源码",
-  "author": "Fang Lei",
-  "license": "Apache-2.0",
+  "name": "blog_admin",
+  "version": "1.0.0",
+  "description": "blog_admin 前端源码",
   "scripts": {
     "dev": "SET NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve --open",
-    "build:prod": "vue-cli-service build",
+    "build:prod": "SET NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview",
     "lint": "eslint --ext .js,.vue src",
@@ -24,13 +22,6 @@
       "eslint --fix",
       "git add"
     ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://gitee.com/rayson517/eladmin-plus.git"
-  },
-  "bugs": {
-    "url": "https://gitee.com/rayson517/eladmin-plus/issues"
   },
   "dependencies": {
     "@riophae/vue-treeselect": "0.4.0",

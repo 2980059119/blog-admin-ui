@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form ref="form">
+    <el-form ref="form" v-loading="loading">
       <!-- 文章信息 -->
       <el-card class="box-card">
         <span class="title">分类：</span>
@@ -186,7 +186,8 @@ export default {
       },
       inputVisible: false,
       inputValue: '',
-      Id: ''
+      id: '',
+      loading: false
     }
   },
   // 当路径出现id是即是编辑模式
@@ -198,18 +199,7 @@ export default {
           // 校验文章id
           if (newVal.length > 0) {
             // 获取文章信息
-            article.selectOne(newVal).then((response) => {
-              this.form = response
-              this.form.categoriesList = Object.keys(response.categoriesList)
-              if (response.tagList == null) {
-                this.form.tagList = []
-              } else {
-                this.form.tagList = Object.values(response.tagList)
-              }
-            }, (err) => {
-              console.log(err)
-              this.$message.error('获取分类列表失败')
-            })
+            this.selectOne(newVal)
           }
         }
       }
@@ -243,7 +233,10 @@ export default {
       // 上传文件
       upload(this.imagesUploadApi, $file).then(res => {
         const data = res.data
-        const url = 'http://192.168.146.110:9000/images/' + data
+        // 本地
+        // const url = 'http://192.168.146.110:9000/images/' + data
+        // 网络
+        const url = 'http://8.219.247.36/images/' + data
         this.$refs.md.$img2Url(pos, url)
       })
     },
@@ -339,6 +332,22 @@ export default {
       }
       this.inputVisible = false
       this.inputValue = ''
+    },
+    selectOne(id) {
+      this.loading = true
+      article.selectOne(id).then((response) => {
+        this.form = response
+        this.form.categoriesList = Object.keys(response.categoriesList)
+        if (response.tagList == null) {
+          this.form.tagList = []
+        } else {
+          this.form.tagList = Object.values(response.tagList)
+        }
+        this.loading = false
+      }, (err) => {
+        this.$message.error(err)
+        this.loading = false
+      })
     }
   }
 }
@@ -388,5 +397,8 @@ export default {
 <style>
 .el-picker-panel__footer .el-picker-panel__link-btn.el-button--text {
   display: none;
+}
+.el-loading-mask{
+  z-index: 1;
 }
 </style>
