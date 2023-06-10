@@ -5,7 +5,8 @@ import Layout from '../layout/index'
 Vue.use(Router)
 
 export const constantRouterMap = [
-  { path: '/login',
+  {
+    path: '/login',
     meta: { title: '登录', noCache: true },
     component: (resolve) => require(['@/views/login'], resolve),
     hidden: true
@@ -63,6 +64,7 @@ export const constantRouterMap = [
 export default new Router({
   // mode: 'hash',
   mode: 'history',
+  base: '/admin/',
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRouterMap
 })
